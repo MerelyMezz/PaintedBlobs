@@ -114,6 +114,17 @@ void GeometrizerMainLoop()
 	InitialShapeCount.CheckSetting();
 	ShapeMutationCount.CheckSetting();
 
+	InitialShapeMaxSize.CheckSetting();
+	SizeMutationScale.CheckSetting();
+	PositionMutationScale.CheckSetting();
+	AngleMutationScale.CheckSetting();
+	BadCoverExclusionThreshold.CheckSetting();
+
+	FocusAreaMinX.CheckSetting();
+	FocusAreaMaxX.CheckSetting();
+	FocusAreaMinY.CheckSetting();
+	FocusAreaMaxY.CheckSetting();
+
 	if (TargetShapeCount > PB.GetCommittedShapeCount())
 	{
 		PB.AddOneShape();

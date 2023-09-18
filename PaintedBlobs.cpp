@@ -243,6 +243,8 @@ void PaintedBlobs::AddOneShape()
 		glBindImageTexture(2, SourceImage.GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 		float RandomNumbers[5] = {dist(MT),dist(MT),dist(MT),dist(MT),dist(MT)};
 		glUniform1fv(0, 5, RandomNumbers);
+		glUniform1f(5, InitialShapeMaxSize);
+		glUniform4f(6, FocusAreaMinX, FocusAreaMaxX, FocusAreaMinY, FocusAreaMaxY);
 		glDispatchCompute(1,1,1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
