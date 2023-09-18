@@ -30,7 +30,7 @@ public:
 	static void DestroyGLFWContext();
 
 	void Initialize();
-	void LoadImage(unsigned char* Data, unsigned int Width, unsigned int Height);
+	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void ResetShapes();
 	void AddOneShape();
 
