@@ -1,6 +1,7 @@
 #include <iostream>
 #include <random>
 #include <format>
+#include <functional>
 
 #include "imgui.h"
 #include "lodepng.h"
@@ -8,10 +9,38 @@
 #include "geometrizer.h"
 #include "PaintedBlobs.h"
 
+template <typename T>
+struct ConfigSetting
+{
+	T PendingSetting;
+	T CommittedSetting;
+
+	std::function<void(T)> CommitSettingFunc;
+
+	void CheckSetting()
+	{
+		if (PendingSetting == CommittedSetting)
+		{
+			return;
+		}
+		CommittedSetting = PendingSetting;
+		CommitSettingFunc(CommittedSetting);
+	}
+
+	ConfigSetting(T InitialSetting, std::function<void(T)> CommitSettingFunc)
+	{
+		PendingSetting = InitialSetting;
+		CommittedSetting = InitialSetting;
+		this->CommitSettingFunc = CommitSettingFunc;
+	}
+};
+
 PaintedBlobs PB;
 
-char* CurrentImagePath = 0;
+ConfigSetting<int> InitialShapeCount(10000, [](int I){PB.SetInitialShapeCount(I);});
+ConfigSetting<int> ShapeMutationCount(10000, [](int I){PB.SetShapeMutationCount(I);});
 
+char* CurrentImagePath = 0;
 int TargetShapeCount = 0;
 
 void GeometrizerMainLoop()
@@ -35,6 +64,10 @@ void GeometrizerMainLoop()
 	ImGui::Image(ImTextureID(PB.GetCanvasTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
+	//settings
+	ImGui::DragInt("Initial Shape Count: ", &InitialShapeCount.PendingSetting,1.0f, 0, 20000);
+	ImGui::DragInt("Shape Mutation Count: ", &ShapeMutationCount.PendingSetting, 1.0f, 0, 20000);
+
 	auto AddNShapes = [](int n)
 	{
 		if (ImGui::Button(std::format("Add {} Shape", n).c_str()))
@@ -51,6 +84,10 @@ void GeometrizerMainLoop()
 	{
 		lodepng::encode("output.png", PB.GetPixels(), PB.GetWidth(), PB.GetHeight());
 	}
+
+	// Do stuff
+	InitialShapeCount.CheckSetting();
+	ShapeMutationCount.CheckSetting();
 
 	if (TargetShapeCount > PB.GetCommittedShapeCount())
 	{

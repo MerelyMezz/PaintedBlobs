@@ -49,6 +49,11 @@ public:
 	void ResetShapes();
 	void AddOneShape();
 
+	//Setters
+	void SetInitialShapeCount(int Count);
+	void SetShapeMutationCount(int Count);
+
+	//Getters
 	std::vector<unsigned char> GetPixels() const;
 
 	GLuint GetSourceImageTextureID() const;
@@ -63,6 +68,10 @@ private:
 	static GLFWwindow* Window;
 
 	std::vector<ExportShape> CommittedShapes;
+
+	//Parameters
+	int InitialShapeCount = 10000;
+	int ShapeMutationCount = 10000;
 
 	//Image resources and buffers
 	Image SourceImage;

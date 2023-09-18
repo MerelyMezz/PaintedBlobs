@@ -228,15 +228,12 @@ void PaintedBlobs::AddOneShape()
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	};
 
-	int StartShapes = 10000;
-	int ShapeMutations = 10000;
-
 	glUseProgram(ResetBestShape);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BestShapeBuffer);
 	glDispatchCompute(1,1,1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-	for (int i = 0; i < StartShapes; i++)
+	for (int i = 0; i < InitialShapeCount; i++)
 	{
 		// for N times:
 		// run shader that: generates random shape, puts data and matrix into buffer
@@ -252,7 +249,7 @@ void PaintedBlobs::AddOneShape()
 		EvaluateCurrentShape();
 	}
 
-	for (int i = 0; i < ShapeMutations; i++)
+	for (int i = 0; i < ShapeMutationCount; i++)
 	{
 		// mutate best shape
 		glUseProgram(MutateBestShape);
@@ -296,6 +293,16 @@ void PaintedBlobs::AddOneShape()
 
 		CommittedShapes.push_back(ExportShape(PosX, PosY, SizeX, SizeY, Angle, ColorR, ColorG, ColorB));
 	}
+}
+
+void PaintedBlobs::SetInitialShapeCount(int Count)
+{
+	InitialShapeCount = Count;
+}
+
+void PaintedBlobs::SetShapeMutationCount(int Count)
+{
+	ShapeMutationCount = Count;
 }
 
 std::vector<unsigned char> PaintedBlobs::GetPixels() const
