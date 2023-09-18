@@ -88,10 +88,10 @@ void GeometrizerMainLoop()
 	ImGui::DragFloat("Angle Mutation Scale", &AngleMutationScale.PendingSetting, 1.0f, NotQuiteZero, 360.0f);
 	ImGui::DragFloat("Bad Cover Exclusion Threshold", &BadCoverExclusionThreshold.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
 
-	ImGui::DragFloat("Focus Area Min X", &FocusAreaMinX.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Focus Area Max X", &FocusAreaMaxX.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Focus Area Min Y", &FocusAreaMinY.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Focus Area Max Y", &FocusAreaMaxY.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Focus Area Min X", &FocusAreaMinX.PendingSetting, 1.0f, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Max X", &FocusAreaMaxX.PendingSetting, 1.0f, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Min Y", &FocusAreaMinY.PendingSetting, 1.0f, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Max Y", &FocusAreaMaxY.PendingSetting, 1.0f, 0.0f, 1.0f);
 
 	auto AddNShapes = [](int n)
 	{
@@ -103,6 +103,7 @@ void GeometrizerMainLoop()
 
 	AddNShapes(1);
 	AddNShapes(10);
+	AddNShapes(50);
 	AddNShapes(128);
 
 	if (ImGui::Button("Export PNG"))
