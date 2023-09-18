@@ -1,8 +1,9 @@
 #include <vector>
-#include <numbers>
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+
+#define PI 3.141592653589793
 
 struct ExportShape
 {
@@ -28,10 +29,10 @@ struct ExportShape
 class Image
 {
 public:
-	void LoadImage(unsigned char* Data, unsigned int Width, unsigned int Height);
+	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void EmptyCanvas(unsigned int Width, unsigned int Height, unsigned char R, unsigned char G, unsigned char B, unsigned char A);
 
-	void SendToGPU(unsigned char* Data);
+	void SendToGPU(const unsigned char* Data);
 
 	unsigned int Width;
 	unsigned int Height;
@@ -46,7 +47,7 @@ public:
 	static void DestroyGLFWContext();
 
 	void Initialize();
-	void LoadImage(unsigned char* Data, unsigned int Width, unsigned int Height);
+	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void ResetShapes();
 	void AddOneShape();
 
@@ -90,7 +91,7 @@ private:
 	float InitialShapeMaxSize = 0.3f;
 	float SizeMutationScale = 0.05f;
 	float PositionMutationScale = 0.05f;
-	float AngleMutationScale = (10.0 / 180.0f) * std::numbers::pi;
+	float AngleMutationScale = (10.0 / 180.0f) * PI;
 	float BadCoverExclusionThreshold = 0.05f;
 
 	float FocusAreaMinX = 0.0f;

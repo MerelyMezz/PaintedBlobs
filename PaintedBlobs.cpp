@@ -26,7 +26,7 @@ ExportShape::ExportShape(	float PosX,
 	this->ColorB = ColorB;
 }
 
-void Image::LoadImage(unsigned char* Data, unsigned int Width, unsigned int Height)
+void Image::LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height)
 {
 	//TODO: crash when too many pixels
 
@@ -54,7 +54,7 @@ void Image::EmptyCanvas(unsigned int Width, unsigned int Height, unsigned char R
 	SendToGPU(ImageData.data());
 }
 
-void Image::SendToGPU(unsigned char* Data)
+void Image::SendToGPU(const unsigned char* Data)
 {
 	//Free previous texture
 	if (GPUTexture)
@@ -178,7 +178,7 @@ void PaintedBlobs::Initialize()
 	MakeBuffer(&AtomicCounters, 6, GL_ATOMIC_COUNTER_BUFFER, GL_MAP_READ_BIT);
 }
 
-void PaintedBlobs::LoadImage(unsigned char* Data, unsigned int Width, unsigned int Height)
+void PaintedBlobs::LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height)
 {
 	SourceImage.LoadImage(Data, Width, Height);
 }
@@ -326,7 +326,7 @@ void PaintedBlobs::SetPositionMutationScale(float NewValue)
 
 void PaintedBlobs::SetAngleMutationScale(float NewValue)
 {
-	AngleMutationScale = (NewValue / 180.0f) * std::numbers::pi;
+	AngleMutationScale = (NewValue / 180.0f) * PI;
 }
 
 void PaintedBlobs::SetBadCoverExclusionThreshold(float NewValue)
