@@ -326,7 +326,7 @@ void PaintedBlobs::SetPositionMutationScale(float NewValue)
 
 void PaintedBlobs::SetAngleMutationScale(float NewValue)
 {
-	AngleMutationScale = glm::radians(NewValue);
+	AngleMutationScale = (NewValue / 180.0f) * std::numbers::pi;
 }
 
 void PaintedBlobs::SetBadCoverExclusionThreshold(float NewValue)

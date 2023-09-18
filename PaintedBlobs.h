@@ -1,9 +1,8 @@
 #include <vector>
+#include <numbers>
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-
-#include "glm/glm.hpp"
 
 struct ExportShape
 {
@@ -91,7 +90,7 @@ private:
 	float InitialShapeMaxSize = 0.3f;
 	float SizeMutationScale = 0.05f;
 	float PositionMutationScale = 0.05f;
-	float AngleMutationScale = glm::radians(10.0f);
+	float AngleMutationScale = (10.0 / 180.0f) * std::numbers::pi;
 	float BadCoverExclusionThreshold = 0.05f;
 
 	float FocusAreaMinX = 0.0f;
