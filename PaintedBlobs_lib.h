@@ -34,6 +34,22 @@ public:
 	void ResetShapes();
 	void AddOneShape();
 
+	//Setters
+	void SetInitialShapeCount(int NewValue);
+	void SetShapeMutationCount(int NewValue);
+
+	void SetInitialShapeMaxSize(float NewValue);
+	void SetSizeMutationScale(float NewValue);
+	void SetPositionMutationScale(float NewValue);
+	void SetAngleMutationScale(float NewValue);
+	void SetBadCoverExclusionThreshold(float NewValue);
+
+	void SetFocusAreaMinX(float NewValue);
+	void SetFocusAreaMaxX(float NewValue);
+	void SetFocusAreaMinY(float NewValue);
+	void SetFocusAreaMaxY(float NewValue);
+
+	//Getters
 	std::vector<unsigned char> GetPixels() const;
 
 	GLuint GetSourceImageTextureID() const;
