@@ -7,6 +7,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 precision highp float;
 
 layout(location = 0) uniform float RandomNumbers[5];
+layout(location = 5) uniform vec3 ShapeMutationScales;
 
 layout(std430, binding = 0) buffer ShapeDataT
 {
@@ -50,15 +51,11 @@ float ClampToNormalizedRange(float Input)
 
 void main()
 {
-	float SizeMutationScale = 0.05;
-	float PositionMutationScale = 0.05;
-	float AngleMutationScale = radians(10.0f);
-
-	ShapeData.Pos.x = ClampToNormalizedRange(MutateFloat(0, BestShapeData.Pos.x, PositionMutationScale));
-	ShapeData.Pos.y = ClampToNormalizedRange(MutateFloat(1, BestShapeData.Pos.y, PositionMutationScale));
-	ShapeData.Size.x = ClampToNormalizedRange(MutateFloat(2, BestShapeData.Size.x, SizeMutationScale));
-	ShapeData.Size.y = ClampToNormalizedRange(MutateFloat(3, BestShapeData.Size.y, SizeMutationScale));
-	ShapeData.Angle = mod(2*PI + MutateFloat(4, BestShapeData.Angle, AngleMutationScale), 2*PI);
+	ShapeData.Pos.x = ClampToNormalizedRange(MutateFloat(0, BestShapeData.Pos.x, ShapeMutationScales.r));
+	ShapeData.Pos.y = ClampToNormalizedRange(MutateFloat(1, BestShapeData.Pos.y, ShapeMutationScales.r));
+	ShapeData.Size.x = ClampToNormalizedRange(MutateFloat(2, BestShapeData.Size.x, ShapeMutationScales.g));
+	ShapeData.Size.y = ClampToNormalizedRange(MutateFloat(3, BestShapeData.Size.y, ShapeMutationScales.g));
+	ShapeData.Angle = mod(2*PI + MutateFloat(4, BestShapeData.Angle, ShapeMutationScales.b), 2*PI);
 
 	// Construct Shape matrix
 	mat3 ScaleMatrix = mat3(	ShapeData.Size[0], 	0.0f, 				0.0f,

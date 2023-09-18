@@ -24,6 +24,8 @@ layout(std430, binding = 2) buffer ShapeDataT2
 	int Score;
 } BestShapeData;
 
+layout(location = 5) uniform float BadCoverExclusionThreshold;
+
 layout (binding = 1, offset = 0) uniform atomic_uint SumR;
 layout (binding = 1, offset = 4) uniform atomic_uint SumG;
 layout (binding = 1, offset = 8) uniform atomic_uint SumB;
@@ -41,7 +43,7 @@ void main()
 
 	float BadCoverRatio = CoverBadF / (CoverGoodF + CoverBadF);
 
-	if (BestScore > BestShapeData.Score && BadCoverRatio < 0.05)
+	if (BestScore > BestShapeData.Score && BadCoverRatio < BadCoverExclusionThreshold)
 	{
 		BestShapeData.Pos = ShapeData.Pos;
 		BestShapeData.Size = ShapeData.Size;

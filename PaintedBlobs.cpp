@@ -224,6 +224,7 @@ void PaintedBlobs::AddOneShape()
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ShapeBuffer);
 		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, AtomicCounters);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BestShapeBuffer);
+		glUniform1f(5, BadCoverExclusionThreshold);
 		glDispatchCompute(1,1,1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	};
@@ -261,6 +262,7 @@ void PaintedBlobs::AddOneShape()
 		glBindImageTexture(3, SourceImage.GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 		float RandomNumbers[5] = {dist(MT),dist(MT),dist(MT),dist(MT),dist(MT)};
 		glUniform1fv(0, 5, RandomNumbers);
+		glUniform3f(5, PositionMutationScale, SizeMutationScale, AngleMutationScale);
 		glDispatchCompute(1,1,1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
