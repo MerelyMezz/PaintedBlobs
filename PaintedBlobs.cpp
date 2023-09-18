@@ -295,14 +295,59 @@ void PaintedBlobs::AddOneShape()
 	}
 }
 
-void PaintedBlobs::SetInitialShapeCount(int Count)
+void PaintedBlobs::SetInitialShapeCount(int NewValue)
 {
-	InitialShapeCount = Count;
+	InitialShapeCount = NewValue;
 }
 
-void PaintedBlobs::SetShapeMutationCount(int Count)
+void PaintedBlobs::SetShapeMutationCount(int NewValue)
 {
-	ShapeMutationCount = Count;
+	ShapeMutationCount = NewValue;
+}
+
+void PaintedBlobs::SetInitialShapeMaxSize(float NewValue)
+{
+	InitialShapeMaxSize = NewValue;
+}
+
+void PaintedBlobs::SetSizeMutationScale(float NewValue)
+{
+	SizeMutationScale = NewValue;
+}
+
+void PaintedBlobs::SetPositionMutationScale(float NewValue)
+{
+	PositionMutationScale = NewValue;
+}
+
+void PaintedBlobs::SetAngleMutationScale(float NewValue)
+{
+	AngleMutationScale = glm::radians(NewValue);
+}
+
+void PaintedBlobs::SetBadCoverExclusionThreshold(float NewValue)
+{
+	BadCoverExclusionThreshold = NewValue;
+}
+
+void PaintedBlobs::SetFocusAreaMinX(float NewValue)
+{
+	FocusAreaMinX = NewValue;
+}
+
+void PaintedBlobs::SetFocusAreaMaxX(float NewValue)
+{
+	FocusAreaMaxX = NewValue;
+}
+
+void PaintedBlobs::SetFocusAreaMinY(float NewValue)
+{
+	FocusAreaMinY = NewValue;
+}
+
+void PaintedBlobs::SetFocusAreaMaxY(float NewValue)
+{
+	FocusAreaMaxY = NewValue;
 }
 
 std::vector<unsigned char> PaintedBlobs::GetPixels() const

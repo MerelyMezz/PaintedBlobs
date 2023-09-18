@@ -37,8 +37,21 @@ struct ConfigSetting
 
 PaintedBlobs PB;
 
-ConfigSetting<int> InitialShapeCount(10000, [](int I){PB.SetInitialShapeCount(I);});
-ConfigSetting<int> ShapeMutationCount(10000, [](int I){PB.SetShapeMutationCount(I);});
+#define CONFIG_SETTING(Type, Name, Default) ConfigSetting<Type> Name(Default, [](Type I){PB.Set##Name(I);});
+
+CONFIG_SETTING(int, InitialShapeCount, 10000);
+CONFIG_SETTING(int, ShapeMutationCount, 10000);
+
+CONFIG_SETTING(float, InitialShapeMaxSize, 0.3f);
+CONFIG_SETTING(float, SizeMutationScale, 0.05f);
+CONFIG_SETTING(float, PositionMutationScale, 0.05f);
+CONFIG_SETTING(float, AngleMutationScale, 10.0f);
+CONFIG_SETTING(float, BadCoverExclusionThreshold, 0.05f);
+
+CONFIG_SETTING(float, FocusAreaMinX, 0.0f);
+CONFIG_SETTING(float, FocusAreaMaxX, 1.0f);
+CONFIG_SETTING(float, FocusAreaMinY, 0.0f);
+CONFIG_SETTING(float, FocusAreaMaxY, 1.0f);
 
 char* CurrentImagePath = 0;
 int TargetShapeCount = 0;
@@ -65,8 +78,20 @@ void GeometrizerMainLoop()
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
 	//settings
-	ImGui::DragInt("Initial Shape Count: ", &InitialShapeCount.PendingSetting,1.0f, 0, 20000);
-	ImGui::DragInt("Shape Mutation Count: ", &ShapeMutationCount.PendingSetting, 1.0f, 0, 20000);
+	float NotQuiteZero = 0.002f;
+	ImGui::DragInt("Initial Shape Count", &InitialShapeCount.PendingSetting,1.0f, 0, 20000);
+	ImGui::DragInt("Shape Mutation Count", &ShapeMutationCount.PendingSetting, 1.0f, 0, 20000);
+
+	ImGui::DragFloat("Initial Shape Max Size", &InitialShapeMaxSize.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Size Mutation Scale", &SizeMutationScale.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Position Mutation Scale", &PositionMutationScale.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Angle Mutation Scale", &AngleMutationScale.PendingSetting, 1.0f, NotQuiteZero, 360.0f);
+	ImGui::DragFloat("Bad Cover Exclusion Threshold", &BadCoverExclusionThreshold.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+
+	ImGui::DragFloat("Focus Area Min X", &FocusAreaMinX.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Focus Area Max X", &FocusAreaMaxX.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Focus Area Min Y", &FocusAreaMinY.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Focus Area Max Y", &FocusAreaMaxY.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
 
 	auto AddNShapes = [](int n)
 	{

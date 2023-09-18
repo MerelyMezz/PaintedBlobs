@@ -4,7 +4,7 @@ R"(
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 precision highp float;
 
-layout(std430, binding = 0) buffer ShapeDataT	// 14 floats total
+layout(std430, binding = 0) buffer ShapeDataT
 {
 	vec2 Pos;
 	vec2 Size;

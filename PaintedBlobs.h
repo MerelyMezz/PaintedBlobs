@@ -3,6 +3,8 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
+#include "glm/glm.hpp"
+
 struct ExportShape
 {
 	float PosX;
@@ -50,8 +52,19 @@ public:
 	void AddOneShape();
 
 	//Setters
-	void SetInitialShapeCount(int Count);
-	void SetShapeMutationCount(int Count);
+	void SetInitialShapeCount(int NewValue);
+	void SetShapeMutationCount(int NewValue);
+
+	void SetInitialShapeMaxSize(float NewValue);
+	void SetSizeMutationScale(float NewValue);
+	void SetPositionMutationScale(float NewValue);
+	void SetAngleMutationScale(float NewValue);
+	void SetBadCoverExclusionThreshold(float NewValue);
+
+	void SetFocusAreaMinX(float NewValue);
+	void SetFocusAreaMaxX(float NewValue);
+	void SetFocusAreaMinY(float NewValue);
+	void SetFocusAreaMaxY(float NewValue);
 
 	//Getters
 	std::vector<unsigned char> GetPixels() const;
@@ -65,6 +78,8 @@ public:
 	ExportShape GetCommittedShape(int Index) const;
 
 private:
+	void RecompileShaders();
+
 	static GLFWwindow* Window;
 
 	std::vector<ExportShape> CommittedShapes;
@@ -72,6 +87,17 @@ private:
 	//Parameters
 	int InitialShapeCount = 10000;
 	int ShapeMutationCount = 10000;
+
+	float InitialShapeMaxSize = 0.3f;
+	float SizeMutationScale = 0.05f;
+	float PositionMutationScale = 0.05f;
+	float AngleMutationScale = glm::radians(10.0f);
+	float BadCoverExclusionThreshold = 0.05f;
+
+	float FocusAreaMinX = 0.0f;
+	float FocusAreaMaxX = 1.0f;
+	float FocusAreaMinY = 0.0f;
+	float FocusAreaMaxY = 1.0f;
 
 	//Image resources and buffers
 	Image SourceImage;
