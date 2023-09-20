@@ -111,6 +111,14 @@ void GeometrizerMainLoop()
 		lodepng::encode("output.png", PB.GetPixels(), PB.GetWidth(), PB.GetHeight());
 	}
 
+	for (int i = 0; i < PB.GetCommittedShapeCount(); i++)
+	{
+		if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
+		{
+			PB.DeleteShape(i);
+		}
+	}
+
 	// Do stuff
 	InitialShapeCount.CheckSetting();
 	ShapeMutationCount.CheckSetting();
@@ -126,9 +134,10 @@ void GeometrizerMainLoop()
 	FocusAreaMinY.CheckSetting();
 	FocusAreaMaxY.CheckSetting();
 
-	if (TargetShapeCount > PB.GetCommittedShapeCount())
+	if (TargetShapeCount > 0)
 	{
 		PB.AddOneShape();
+		TargetShapeCount--;
 	}
 
 	ImGui::End();

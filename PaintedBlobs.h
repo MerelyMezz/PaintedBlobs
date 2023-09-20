@@ -49,6 +49,7 @@ public:
 	void Initialize();
 	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void ResetShapes();
+	void DeleteShape(int ShapeIndex);
 	void AddOneShape();
 
 	//Setters
@@ -116,4 +117,5 @@ private:
 	GLuint MutateBestShape;
 	GLuint ResetBestShape;
 	GLuint DrawShape;
+	GLuint ReDrawShape;
 };

@@ -1,5 +1,7 @@
 #include "PaintedBlobs.h"
 
+#include "glm/glm.hpp"
+
 #include <iostream>
 #include <random>
 
@@ -164,6 +166,10 @@ void PaintedBlobs::Initialize()
 		#include "DrawShape.glsl"
 	);
 
+	ReDrawShape = CompileShader(
+		#include "ReDrawShape.glsl"
+	);
+
 	auto MakeBuffer = [](GLuint* Buffer, int size, GLuint type, GLuint flags)
 	{
 		glGenBuffers(1, Buffer);
@@ -187,6 +193,50 @@ void PaintedBlobs::ResetShapes()
 {
 	ShapeCanvas.EmptyCanvas(SourceImage.Width, SourceImage.Height, 0,0,0,0);
 	CommittedShapes.clear();
+}
+
+void PaintedBlobs::DeleteShape(int ShapeIndex)
+{
+	CommittedShapes.erase(CommittedShapes.begin() + ShapeIndex);
+
+	//redraw shapecanvas from scratch
+	ShapeCanvas.EmptyCanvas(ShapeCanvas.Width, ShapeCanvas.Height, 0,0,0,0);
+
+	glm::mat3 ScreenScaleMatrix = glm::mat3(	ShapeCanvas.Width, 	0.0f, 				0.0f,
+												0.0f,		 		ShapeCanvas.Height, 0.0f,
+												0.0f, 				0.0f, 				1.0f);
+
+	for (int i = 0; i < CommittedShapes.size(); i++)
+	{
+		ExportShape Shape = CommittedShapes[i];
+
+		//Construct shape matrix
+		glm::mat3 ScaleMatrix = glm::mat3(	Shape.SizeX, 	0.0f, 				0.0f,
+											0.0f,		 	Shape.SizeY, 		0.0f,
+											0.0f, 			0.0f, 				1.0f);
+
+
+		float s = sin(Shape.Angle);
+		float c = cos(Shape.Angle);
+		glm::mat3 RotMatrix = glm::mat3(	c, 		-s,		0.0f,
+											s, 		c, 		0.0f,
+											0.0f, 	0.0f,	1.0f);
+
+		glm::mat3 TranslateMatrix = glm::mat3(	1.0f, 	0.0f,	Shape.PosX,
+												0.0f, 	1.0f,	Shape.PosY,
+												0.0f, 	0.0f,	1.0f);
+
+		glm::mat3 UnitSquareToShapeTransform = ((ScaleMatrix * RotMatrix) * TranslateMatrix) * ScreenScaleMatrix;
+		glm::mat3 ShapeToUnitSquareTransform = inverse(UnitSquareToShapeTransform);
+
+		//Run Redraw shader
+		glUseProgram(ReDrawShape);
+		glUniformMatrix3fv(0, 1, GL_FALSE, &ShapeToUnitSquareTransform[0][0]);
+		glUniform3f(1, Shape.ColorR, Shape.ColorG, Shape.ColorB);
+		glBindImageTexture(0, ShapeCanvas.GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
+		glDispatchCompute(ShapeCanvas.Width, ShapeCanvas.Height,1);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	}
 }
 
 void PaintedBlobs::AddOneShape()
