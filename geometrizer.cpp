@@ -111,7 +111,7 @@ void GeometrizerMainLoop()
 		lodepng::encode("output.png", PB.GetPixels(), PB.GetWidth(), PB.GetHeight());
 	}
 
-	for (int i = 0; i < PB.GetCommittedShapeCount(); i++)
+	for (int i = PB.GetCommittedShapeCount() - 1; i >= 0; i--)
 	{
 		if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
 		{
