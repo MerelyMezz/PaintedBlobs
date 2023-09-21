@@ -78,6 +78,8 @@ public:
 	void SetFocusAreaMinY(float NewValue);
 	void SetFocusAreaMaxY(float NewValue);
 
+	void SetCommittedShape(int Index, ExportShape NewValue);
+
 	//Getters
 	std::vector<unsigned char> GetPixels() const;
 
@@ -90,7 +92,7 @@ public:
 	ExportShape GetCommittedShape(int Index) const;
 
 private:
-	void RecompileShaders();
+	void RedrawShapeCanvas();
 
 	static GLFWwindow* Window;
 

@@ -264,8 +264,11 @@ void PaintedBlobs::ResetShapes()
 void PaintedBlobs::DeleteShape(int ShapeIndex)
 {
 	CommittedShapes.erase(CommittedShapes.begin() + ShapeIndex);
+	RedrawShapeCanvas();
+}
 
-	//redraw shapecanvas from scratch
+void PaintedBlobs::RedrawShapeCanvas()
+{
 	ShapeCanvas.EmptyCanvas(ShapeCanvas.Width, ShapeCanvas.Height, 0,0,0,0);
 
 	for (int i = 0; i < CommittedShapes.size(); i++)
@@ -437,6 +440,12 @@ void PaintedBlobs::SetFocusAreaMinY(float NewValue)
 void PaintedBlobs::SetFocusAreaMaxY(float NewValue)
 {
 	FocusAreaMaxY = NewValue;
+}
+
+void PaintedBlobs::SetCommittedShape(int Index, ExportShape NewValue)
+{
+	CommittedShapes[Index] = NewValue;
+	RedrawShapeCanvas();
 }
 
 std::vector<unsigned char> PaintedBlobs::GetPixels() const

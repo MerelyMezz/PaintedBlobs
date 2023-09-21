@@ -60,6 +60,7 @@ int TargetShapeCount = 0;
 //Images and GUI stuff
 bool ShouldRedrawImages = true;
 int SelectedShape = -1;
+ExportShape SelectedShapeData(0.0f, 0.0f ,0.0f ,0.0f ,0.0f ,0.0f ,0.0f, 0.0f);
 
 Image ShapePreview;
 Image SoloShapePreview;
@@ -92,21 +93,25 @@ void GeometrizerMainLoop()
 
 		for (int i = 0; i < ShapeCount; i++)
 		{
-			SingleShapeLayers[i].EmptyCanvas(100,100, 0,0,0,0);
-			SingleShapeLayers[i].DrawSingleShape(PB.GetCommittedShape(i));
+			ExportShape Shape = i == SelectedShape ? SelectedShapeData : PB.GetCommittedShape(i);
 
-			ShapePreview.DrawSingleShape(PB.GetCommittedShape(i));
+			SingleShapeLayers[i].EmptyCanvas(100,100, 0,0,0,0);
+			SingleShapeLayers[i].DrawSingleShape(Shape);
+
+			ShapePreview.DrawSingleShape(Shape);
 		}
 
 		// Draw selected shape only
 		SoloShapePreview.EmptyCanvas(256,256, 0,0,0,0);
 		if (SelectedShape >= 0 && SelectedShape < PB.GetCommittedShapeCount())
 		{
-			SoloShapePreview.DrawSingleShape(PB.GetCommittedShape(SelectedShape));
+			SoloShapePreview.DrawSingleShape(SelectedShapeData);
 		}
 	}
 
 	// Draw GUI
+	float SliderSpeed = 0.01f;
+
 	ImGui::Begin("Test");
 
 	ImGui::BeginTable("TABLE", 2);
@@ -115,25 +120,75 @@ void GeometrizerMainLoop()
 	ImGui::Image(ImTextureID(PB.GetSourceImageTextureID()), ImVec2(ShapePreview.Width, ShapePreview.Height));
 	ImGui::SameLine();
 	ImGui::Image(ImTextureID(ShapePreview.GPUTexture), ImVec2(ShapePreview.Width, ShapePreview.Height));
+
+	//Selected Soloshape
+	bool WasDisabled = false;
+	if (SelectedShape < 0)
+	{
+		ImGui::BeginDisabled();
+		WasDisabled = true;
+	}
+
+	ImGui::BeginTable("SoloSelectedShape", 2);
+	ImGui::TableNextColumn();
+	ShouldRedrawImages |= ImGui::DragFloat("Position X", &SelectedShapeData.PosX, SliderSpeed, 0.0f, 1.0f);
+	ShouldRedrawImages |= ImGui::DragFloat("Position Y", &SelectedShapeData.PosY, SliderSpeed, 0.0f, 1.0f);
+	ShouldRedrawImages |= ImGui::DragFloat("Size X", &SelectedShapeData.SizeX, SliderSpeed, 0.0f, 1.0f);
+	ShouldRedrawImages |= ImGui::DragFloat("Size Y", &SelectedShapeData.SizeY, SliderSpeed, 0.0f, 1.0f);
+	ShouldRedrawImages |= ImGui::DragFloat("Angle", &SelectedShapeData.Angle, 1.0, 0.0f, 360.0f);
+	ShouldRedrawImages |= ImGui::ColorEdit3("ShapeColor", &SelectedShapeData.ColorR);
+
+	if (ImGui::Button("Reset Changes"))
+	{
+		SelectedShapeData = PB.GetCommittedShape(SelectedShape);
+	}
+
+	if (ImGui::Button("Commit Changes"))
+	{
+		PB.SetCommittedShape(SelectedShape, SelectedShapeData);
+	}
+
+	if (ImGui::Button("Delete Shape"))
+	{
+		PB.DeleteShape(SelectedShape);
+
+		//reselect the same-ish id
+
+		SelectedShape = std::min(SelectedShape, PB.GetCommittedShapeCount() - 1);
+
+		if (SelectedShape >= 0)
+		{
+			SelectedShapeData = PB.GetCommittedShape(SelectedShape);
+		}
+	}
+
+	ImGui::TableNextColumn();
 	ImGui::Image(ImTextureID(SoloShapePreview.GPUTexture), ImVec2(SoloShapePreview.Width, SoloShapePreview.Height));
+	ImGui::EndTable();
+
+	if (WasDisabled)
+	{
+		ImGui::EndDisabled();
+	}
 
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
 	//settings
 	float NotQuiteZero = 0.002f;
+
 	ImGui::DragInt("Initial Shape Count", &InitialShapeCount.PendingSetting,1.0f, 0, 20000);
 	ImGui::DragInt("Shape Mutation Count", &ShapeMutationCount.PendingSetting, 1.0f, 0, 20000);
 
-	ImGui::DragFloat("Initial Shape Max Size", &InitialShapeMaxSize.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Size Mutation Scale", &SizeMutationScale.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Position Mutation Scale", &PositionMutationScale.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
-	ImGui::DragFloat("Angle Mutation Scale", &AngleMutationScale.PendingSetting, 1.0f, NotQuiteZero, 360.0f);
-	ImGui::DragFloat("Bad Cover Exclusion Threshold", &BadCoverExclusionThreshold.PendingSetting, 1.0f, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Initial Shape Max Size", &InitialShapeMaxSize.PendingSetting, SliderSpeed, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Size Mutation Scale", &SizeMutationScale.PendingSetting, SliderSpeed, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Position Mutation Scale", &PositionMutationScale.PendingSetting, SliderSpeed, NotQuiteZero, 1.0f);
+	ImGui::DragFloat("Angle Mutation Scale", &AngleMutationScale.PendingSetting, SliderSpeed, NotQuiteZero, 360.0f);
+	ImGui::DragFloat("Bad Cover Exclusion Threshold", &BadCoverExclusionThreshold.PendingSetting, SliderSpeed, NotQuiteZero, 1.0f);
 
-	ImGui::DragFloat("Focus Area Min X", &FocusAreaMinX.PendingSetting, 1.0f, 0.0f, 1.0f);
-	ImGui::DragFloat("Focus Area Max X", &FocusAreaMaxX.PendingSetting, 1.0f, 0.0f, 1.0f);
-	ImGui::DragFloat("Focus Area Min Y", &FocusAreaMinY.PendingSetting, 1.0f, 0.0f, 1.0f);
-	ImGui::DragFloat("Focus Area Max Y", &FocusAreaMaxY.PendingSetting, 1.0f, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Min X", &FocusAreaMinX.PendingSetting, SliderSpeed, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Max X", &FocusAreaMaxX.PendingSetting, SliderSpeed, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Min Y", &FocusAreaMinY.PendingSetting, SliderSpeed, 0.0f, 1.0f);
+	ImGui::DragFloat("Focus Area Max Y", &FocusAreaMaxY.PendingSetting, SliderSpeed, 0.0f, 1.0f);
 
 	auto AddNShapes = [](int n)
 	{
@@ -180,16 +235,8 @@ void GeometrizerMainLoop()
 		ImVec4(0,0,0,0), ImVec4(1,1,1,1)))
 		{
 			SelectedShape = i;
+			SelectedShapeData = PB.GetCommittedShape(i);
 		}
-
-
-		//ImGui::SameLine();
-
-		/*if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
-		{
-			PB.DeleteShape(i);
-			ShouldRedrawImages = true;
-		}*/
 	}
 
 	ImGui::PopStyleColor(3);
