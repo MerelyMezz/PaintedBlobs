@@ -29,22 +29,30 @@ struct ExportShape
 class Image
 {
 public:
+	static void CompileShaders();
+
 	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void EmptyCanvas(unsigned int Width, unsigned int Height, unsigned char R, unsigned char G, unsigned char B, unsigned char A);
 
 	void SendToGPU(const unsigned char* Data);
 
+	void DrawSingleShape(ExportShape Shape);
+
 	unsigned int Width;
 	unsigned int Height;
 
 	GLuint GPUTexture = 0;
+
+private:
+	static GLuint ReDrawShape;
 };
 
 class PaintedBlobs
 {
 public:
-	static int CreateGLFWContext();
-	static void DestroyGLFWContext();
+	static int InitializeStatic(bool CreateGLFWContext);
+	static void TerminateStatic();
+	static void CompileShaders();
 
 	void Initialize();
 	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
@@ -109,13 +117,12 @@ private:
 	GLuint AtomicCounters;
 
 	//Shader programs
-	GLuint MakeRandomShape;
-	GLuint CountColors;
-	GLuint GetAverageColor;
-	GLuint GetScore;
-	GLuint ReplaceBestShape;
-	GLuint MutateBestShape;
-	GLuint ResetBestShape;
-	GLuint DrawShape;
-	GLuint ReDrawShape;
+	static GLuint MakeRandomShape;
+	static GLuint CountColors;
+	static GLuint GetAverageColor;
+	static GLuint GetScore;
+	static GLuint ReplaceBestShape;
+	static GLuint MutateBestShape;
+	static GLuint ResetBestShape;
+	static GLuint DrawShape;
 };

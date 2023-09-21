@@ -9,6 +9,36 @@ std::random_device RandomDevice;
 std::mt19937_64 MT(RandomDevice());
 std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
+GLuint CompileShader(const char* SourceCode)
+{
+	GLuint Shader = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(Shader, 1, &SourceCode, nullptr);
+	glCompileShader(Shader);
+
+	GLint success = 0;
+	glGetShaderiv(Shader, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
+	{
+		char CompileError[2048];
+		glGetShaderInfoLog(Shader, 2048, NULL, CompileError);
+		std::cerr<<"Shader compilation failed"<<std::endl<<CompileError<<std::endl;
+	}
+
+	GLuint Program = glCreateProgram();
+	glAttachShader(Program, Shader);
+	glLinkProgram(Program);
+	glGetProgramiv(Program, GL_LINK_STATUS, &success);
+
+	if (!success)
+	{
+		char CompileError[2048];
+		glGetProgramInfoLog(Program, 2048, NULL, CompileError);
+		std::cerr<<"Program link failed"<<std::endl<<CompileError<<std::endl;
+	}
+
+	return Program;
+}
+
 ExportShape::ExportShape(	float PosX,
 							float PosY,
 							float SizeX,
@@ -26,6 +56,15 @@ ExportShape::ExportShape(	float PosX,
 	this->ColorR = ColorR;
 	this->ColorG = ColorG;
 	this->ColorB = ColorB;
+}
+
+GLuint Image::ReDrawShape;
+
+void Image::CompileShaders()
+{
+	ReDrawShape = CompileShader(
+		#include "ReDrawShape.glsl"
+	);
 }
 
 void Image::LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height)
@@ -72,68 +111,85 @@ void Image::SendToGPU(const unsigned char* Data)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
-GLFWwindow* PaintedBlobs::Window;
-
-int PaintedBlobs::CreateGLFWContext()
+void Image::DrawSingleShape(ExportShape Shape)
 {
-	if (!glfwInit())
+	//Construct shape matrix
+	glm::mat3 ScreenScaleMatrix = glm::mat3(	Width, 	0.0f,	0.0f,
+												0.0f,	Height, 0.0f,
+												0.0f, 	0.0f, 	1.0f);
+	glm::mat3 ScaleMatrix = glm::mat3(	Shape.SizeX, 	0.0f, 				0.0f,
+										0.0f,		 	Shape.SizeY, 		0.0f,
+										0.0f, 			0.0f, 				1.0f);
+	float s = sin(Shape.Angle);
+	float c = cos(Shape.Angle);
+	glm::mat3 RotMatrix = glm::mat3(	c, 		-s,		0.0f,
+										s, 		c, 		0.0f,
+										0.0f, 	0.0f,	1.0f);
+
+	glm::mat3 TranslateMatrix = glm::mat3(	1.0f, 	0.0f,	Shape.PosX,
+											0.0f, 	1.0f,	Shape.PosY,
+											0.0f, 	0.0f,	1.0f);
+
+	glm::mat3 UnitSquareToShapeTransform = ((ScaleMatrix * RotMatrix) * TranslateMatrix) * ScreenScaleMatrix;
+	glm::mat3 ShapeToUnitSquareTransform = inverse(UnitSquareToShapeTransform);
+
+	//Run Redraw shader
+	glUseProgram(ReDrawShape);
+	glUniformMatrix3fv(0, 1, GL_FALSE, &ShapeToUnitSquareTransform[0][0]);
+	glUniform3f(1, Shape.ColorR, Shape.ColorG, Shape.ColorB);
+	glBindImageTexture(0, GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glDispatchCompute(Width, Height,1);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+}
+
+GLFWwindow* PaintedBlobs::Window = 0;
+
+GLuint PaintedBlobs::MakeRandomShape;
+GLuint PaintedBlobs::CountColors;
+GLuint PaintedBlobs::GetAverageColor;
+GLuint PaintedBlobs::GetScore;
+GLuint PaintedBlobs::ReplaceBestShape;
+GLuint PaintedBlobs::MutateBestShape;
+GLuint PaintedBlobs::ResetBestShape;
+GLuint PaintedBlobs::DrawShape;
+
+int PaintedBlobs::InitializeStatic(bool CreateGLFWContext)
+{
+	if (CreateGLFWContext)
 	{
-		glfwTerminate();
-		return 1;
+		if (!glfwInit())
+		{
+			glfwTerminate();
+			return 1;
+		}
+
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+		Window = glfwCreateWindow(1024, 1024, "Test", nullptr, nullptr);
+		glfwMakeContextCurrent(Window);
+
+		if (glewInit() != GLEW_OK)
+		{
+			return 1;
+		}
 	}
 
-	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-	Window = glfwCreateWindow(1024, 1024, "Test", nullptr, nullptr);
-	glfwMakeContextCurrent(Window);
-
-	if (glewInit() != GLEW_OK)
-	{
-		return 1;
-	}
+	CompileShaders();
+	Image::CompileShaders();
 
 	return 0;
 }
 
-void PaintedBlobs::DestroyGLFWContext()
+void PaintedBlobs::TerminateStatic()
 {
-	glfwDestroyWindow(Window);
-	glfwTerminate();
+	if (Window)
+	{
+		glfwDestroyWindow(Window);
+		glfwTerminate();
+	}
 }
 
-void PaintedBlobs::Initialize()
+void PaintedBlobs::CompileShaders()
 {
-	auto CompileShader = [](const char* SourceCode)
-	{
-		GLuint Shader = glCreateShader(GL_COMPUTE_SHADER);
-		glShaderSource(Shader, 1, &SourceCode, nullptr);
-		glCompileShader(Shader);
-
-		GLint success = 0;
-		glGetShaderiv(Shader, GL_COMPILE_STATUS, &success);
-		if (success == GL_FALSE)
-		{
-			char CompileError[2048];
-			glGetShaderInfoLog(Shader, 2048, NULL, CompileError);
-			std::cerr<<"Shader compilation failed"<<std::endl<<CompileError<<std::endl;
-		}
-
-		GLuint Program = glCreateProgram();
-		glAttachShader(Program, Shader);
-		glLinkProgram(Program);
-
-		glGetProgramiv(Program, GL_LINK_STATUS, &success);
-		if(!success)
-		{
-			char CompileError[2048];
-			glGetProgramInfoLog(Program, 2048, NULL, CompileError);
-			std::cerr<<"Program link failed"<<std::endl<<CompileError<<std::endl;
-		}
-
-		return Program;
-	};
-
-	//Compile programs
 	MakeRandomShape = CompileShader(
 		#include "MakeRandomShape.glsl"
 	);
@@ -165,11 +221,10 @@ void PaintedBlobs::Initialize()
 	DrawShape = CompileShader(
 		#include "DrawShape.glsl"
 	);
+}
 
-	ReDrawShape = CompileShader(
-		#include "ReDrawShape.glsl"
-	);
-
+void PaintedBlobs::Initialize()
+{
 	auto MakeBuffer = [](GLuint* Buffer, int size, GLuint type, GLuint flags)
 	{
 		glGenBuffers(1, Buffer);
@@ -202,40 +257,9 @@ void PaintedBlobs::DeleteShape(int ShapeIndex)
 	//redraw shapecanvas from scratch
 	ShapeCanvas.EmptyCanvas(ShapeCanvas.Width, ShapeCanvas.Height, 0,0,0,0);
 
-	glm::mat3 ScreenScaleMatrix = glm::mat3(	ShapeCanvas.Width, 	0.0f, 				0.0f,
-												0.0f,		 		ShapeCanvas.Height, 0.0f,
-												0.0f, 				0.0f, 				1.0f);
-
 	for (int i = 0; i < CommittedShapes.size(); i++)
 	{
-		ExportShape Shape = CommittedShapes[i];
-
-		//Construct shape matrix
-		glm::mat3 ScaleMatrix = glm::mat3(	Shape.SizeX, 	0.0f, 				0.0f,
-											0.0f,		 	Shape.SizeY, 		0.0f,
-											0.0f, 			0.0f, 				1.0f);
-
-
-		float s = sin(Shape.Angle);
-		float c = cos(Shape.Angle);
-		glm::mat3 RotMatrix = glm::mat3(	c, 		-s,		0.0f,
-											s, 		c, 		0.0f,
-											0.0f, 	0.0f,	1.0f);
-
-		glm::mat3 TranslateMatrix = glm::mat3(	1.0f, 	0.0f,	Shape.PosX,
-												0.0f, 	1.0f,	Shape.PosY,
-												0.0f, 	0.0f,	1.0f);
-
-		glm::mat3 UnitSquareToShapeTransform = ((ScaleMatrix * RotMatrix) * TranslateMatrix) * ScreenScaleMatrix;
-		glm::mat3 ShapeToUnitSquareTransform = inverse(UnitSquareToShapeTransform);
-
-		//Run Redraw shader
-		glUseProgram(ReDrawShape);
-		glUniformMatrix3fv(0, 1, GL_FALSE, &ShapeToUnitSquareTransform[0][0]);
-		glUniform3f(1, Shape.ColorR, Shape.ColorG, Shape.ColorB);
-		glBindImageTexture(0, ShapeCanvas.GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
-		glDispatchCompute(ShapeCanvas.Width, ShapeCanvas.Height,1);
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		ShapeCanvas.DrawSingleShape(CommittedShapes[i]);
 	}
 }
 

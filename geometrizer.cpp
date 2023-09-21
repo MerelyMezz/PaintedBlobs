@@ -155,5 +155,7 @@ void SetupGLFWCallbacks(GLFWwindow* W)
 		CurrentImagePath = (char*)paths[0];
 	});
 
+	PaintedBlobs::InitializeStatic(false);
+
 	PB.Initialize();
 }
