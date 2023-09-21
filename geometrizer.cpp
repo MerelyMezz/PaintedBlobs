@@ -97,20 +97,14 @@ void GeometrizerMainLoop()
 	}
 
 	ImGui::Begin("Test");
+
+	ImGui::BeginTable("TABLE", 2);
+	ImGui::TableNextColumn();
+
 	ImGui::Image(ImTextureID(PB.GetSourceImageTextureID()), ImVec2(ShapePreview.Width, ShapePreview.Height));
 	ImGui::SameLine();
 	//ImGui::Image(ImTextureID(PB.GetCanvasTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
 	ImGui::Image(ImTextureID(ShapePreview.GPUTexture), ImVec2(ShapePreview.Width, ShapePreview.Height));
-
-	//Draw single layers
-	for (int i = 0; i < SingleShapeLayers.size(); i++)
-	{
-		ImGui::Image(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height));
-		if (i < SingleShapeLayers.size() - 1)
-		{
-			ImGui::SameLine();
-		}
-	}
 
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
@@ -153,14 +147,25 @@ void GeometrizerMainLoop()
 		lodepng::encode("output.png", PB.GetPixels(), PB.GetWidth(), PB.GetHeight());
 	}
 
-	for (int i = PB.GetCommittedShapeCount() - 1; i >= 0; i--)
+	ImGui::TableNextColumn();
+
+	ImGui::BeginChild("SoloLayer");
+
+	//Draw single layers
+	for (int i = SingleShapeLayers.size() - 1; i >= 0; i--)
 	{
+		ImGui::Image(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height));
+		ImGui::SameLine();
+
 		if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
 		{
 			PB.DeleteShape(i);
 			ShouldRedrawImages = true;
 		}
 	}
+
+	ImGui::EndChild();
+	ImGui::EndTable();
 
 	ImGui::End();
 
