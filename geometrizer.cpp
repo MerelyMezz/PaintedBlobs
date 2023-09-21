@@ -142,7 +142,7 @@ void GeometrizerMainLoop()
 	ShouldRedrawImages |= ImGui::DragFloat("Position Y", &SelectedShapeData.PosY, SliderSpeed, 0.0f, 1.0f);
 	ShouldRedrawImages |= ImGui::DragFloat("Size X", &SelectedShapeData.SizeX, SliderSpeed, 0.0f, 1.0f);
 	ShouldRedrawImages |= ImGui::DragFloat("Size Y", &SelectedShapeData.SizeY, SliderSpeed, 0.0f, 1.0f);
-	ShouldRedrawImages |= ImGui::DragFloat("Angle", &SelectedShapeData.Angle, 1.0, 0.0f, 360.0f);
+	ShouldRedrawImages |= ImGui::DragFloat("Angle", &SelectedShapeData.Angle, SliderSpeed, 0.0f, 2*PI);
 	ShouldRedrawImages |= ImGui::ColorEdit3("ShapeColor", &SelectedShapeData.ColorR);
 
 	if (ImGui::Button("Reset Changes"))
