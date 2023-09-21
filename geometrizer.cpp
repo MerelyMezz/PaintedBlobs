@@ -101,6 +101,13 @@ void GeometrizerMainLoop()
 			ShapePreview.DrawSingleShape(Shape);
 		}
 
+		ShapePreview.DrawFocusArea(
+			FocusAreaMinX.CommittedSetting,
+			FocusAreaMaxX.CommittedSetting,
+			FocusAreaMinY.CommittedSetting,
+			FocusAreaMaxY.CommittedSetting
+		);
+
 		// Draw selected shape only
 		SoloShapePreview.EmptyCanvas(256,256, 0,0,0,0);
 		if (SelectedShape >= 0 && SelectedShape < PB.GetCommittedShapeCount())
@@ -153,7 +160,6 @@ void GeometrizerMainLoop()
 		PB.DeleteShape(SelectedShape);
 
 		//reselect the same-ish id
-
 		SelectedShape = std::min(SelectedShape, PB.GetCommittedShapeCount() - 1);
 
 		if (SelectedShape >= 0)
@@ -230,9 +236,7 @@ void GeometrizerMainLoop()
 		unsigned int SelectColor = 0x80ffffff;
 		ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, i == SelectedShape ? SelectColor : 0);
 
-		if (ImGui::ImageButton(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height),
-		ImVec2(0,0), ImVec2(1,1), -1,
-		ImVec4(0,0,0,0), ImVec4(1,1,1,1)))
+		if (ImGui::ImageButton(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height)))
 		{
 			SelectedShape = i;
 			SelectedShapeData = PB.GetCommittedShape(i);

@@ -59,11 +59,16 @@ ExportShape::ExportShape(	float PosX,
 }
 
 GLuint Image::ReDrawShape;
+GLuint Image::DrawFocusBorder;
 
 void Image::CompileShaders()
 {
 	ReDrawShape = CompileShader(
 		#include "ReDrawShape.glsl"
+	);
+
+	DrawFocusBorder = CompileShader(
+		#include "DrawFocusBorder.glsl"
 	);
 }
 
@@ -148,6 +153,15 @@ void Image::DrawSingleShape(ExportShape Shape)
 	glUseProgram(ReDrawShape);
 	glUniformMatrix3fv(0, 1, GL_FALSE, &ShapeToUnitSquareTransform[0][0]);
 	glUniform3f(1, Shape.ColorR, Shape.ColorG, Shape.ColorB);
+	glBindImageTexture(0, GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glDispatchCompute(Width, Height,1);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+}
+
+void Image::DrawFocusArea(float MinX, float MaxX, float MinY, float MaxY)
+{
+	glUseProgram(DrawFocusBorder);
+	glUniform4f(0, MinX, MaxX, MinY, MaxY);
 	glBindImageTexture(0, GPUTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 	glDispatchCompute(Width, Height,1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

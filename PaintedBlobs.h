@@ -40,6 +40,7 @@ public:
 	void SendToGPU(const unsigned char* Data);
 
 	void DrawSingleShape(ExportShape Shape);
+	void DrawFocusArea(float MinX, float MaxX, float MinY, float MaxY);
 
 	unsigned int Width;
 	unsigned int Height;
@@ -48,6 +49,7 @@ public:
 
 private:
 	static GLuint ReDrawShape;
+	static GLuint DrawFocusBorder;
 };
 
 class PaintedBlobs
