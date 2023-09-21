@@ -31,9 +31,12 @@ class Image
 public:
 	static void CompileShaders();
 
+	~Image();
+
 	void LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height);
 	void EmptyCanvas(unsigned int Width, unsigned int Height, unsigned char R, unsigned char G, unsigned char B, unsigned char A);
 
+	void DeleteGPUTexture();
 	void SendToGPU(const unsigned char* Data);
 
 	void DrawSingleShape(ExportShape Shape);

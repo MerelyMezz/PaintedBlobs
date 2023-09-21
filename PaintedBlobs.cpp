@@ -67,6 +67,11 @@ void Image::CompileShaders()
 	);
 }
 
+Image::~Image()
+{
+	DeleteGPUTexture();
+}
+
 void Image::LoadImage(const unsigned char* Data, unsigned int Width, unsigned int Height)
 {
 	//TODO: crash when too many pixels
@@ -95,13 +100,18 @@ void Image::EmptyCanvas(unsigned int Width, unsigned int Height, unsigned char R
 	SendToGPU(ImageData.data());
 }
 
-void Image::SendToGPU(const unsigned char* Data)
+void Image::DeleteGPUTexture()
 {
-	//Free previous texture
 	if (GPUTexture)
 	{
 		glDeleteTextures(1, &GPUTexture);
 	}
+}
+
+void Image::SendToGPU(const unsigned char* Data)
+{
+	//Free previous texture
+	DeleteGPUTexture();
 
 	glGenTextures(1, &GPUTexture);
 	glBindTexture(GL_TEXTURE_2D, GPUTexture);
@@ -117,6 +127,7 @@ void Image::DrawSingleShape(ExportShape Shape)
 	glm::mat3 ScreenScaleMatrix = glm::mat3(	Width, 	0.0f,	0.0f,
 												0.0f,	Height, 0.0f,
 												0.0f, 	0.0f, 	1.0f);
+
 	glm::mat3 ScaleMatrix = glm::mat3(	Shape.SizeX, 	0.0f, 				0.0f,
 										0.0f,		 	Shape.SizeY, 		0.0f,
 										0.0f, 			0.0f, 				1.0f);

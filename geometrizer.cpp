@@ -37,6 +37,7 @@ struct ConfigSetting
 
 PaintedBlobs PB;
 
+//GUI stuff
 #define CONFIG_SETTING(Type, Name, Default) ConfigSetting<Type> Name(Default, [](Type I){PB.Set##Name(I);});
 
 CONFIG_SETTING(int, InitialShapeCount, 10000);
@@ -56,6 +57,12 @@ CONFIG_SETTING(float, FocusAreaMaxY, 1.0f);
 char* CurrentImagePath = 0;
 int TargetShapeCount = 0;
 
+//Images
+bool ShouldRedrawImages = true;
+
+Image ShapePreview;
+std::vector<Image> SingleShapeLayers;
+
 void GeometrizerMainLoop()
 {
 	//Reset all if new image loaded
@@ -71,10 +78,40 @@ void GeometrizerMainLoop()
 		CurrentImagePath = 0;
 	}
 
+	//Redraw any images that may be used by imgui
+	if (ShouldRedrawImages)
+	{
+		int ShapeCount = PB.GetCommittedShapeCount();
+
+		SingleShapeLayers.resize(ShapeCount);
+
+		ShapePreview.EmptyCanvas(256,256, 0,0,0,0);
+
+		for (int i = 0; i < ShapeCount; i++)
+		{
+			SingleShapeLayers[i].EmptyCanvas(100,100, 0,0,0,0);
+			SingleShapeLayers[i].DrawSingleShape(PB.GetCommittedShape(i));
+
+			ShapePreview.DrawSingleShape(PB.GetCommittedShape(i));
+		}
+	}
+
 	ImGui::Begin("Test");
-	ImGui::Image(ImTextureID(PB.GetSourceImageTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
+	ImGui::Image(ImTextureID(PB.GetSourceImageTextureID()), ImVec2(ShapePreview.Width, ShapePreview.Height));
 	ImGui::SameLine();
-	ImGui::Image(ImTextureID(PB.GetCanvasTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
+	//ImGui::Image(ImTextureID(PB.GetCanvasTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
+	ImGui::Image(ImTextureID(ShapePreview.GPUTexture), ImVec2(ShapePreview.Width, ShapePreview.Height));
+
+	//Draw single layers
+	for (int i = 0; i < SingleShapeLayers.size(); i++)
+	{
+		ImGui::Image(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height));
+		if (i < SingleShapeLayers.size() - 1)
+		{
+			ImGui::SameLine();
+		}
+	}
+
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
 	//settings
@@ -101,6 +138,11 @@ void GeometrizerMainLoop()
 		}
 	};
 
+	if (ImGui::Button("Stop making shapes"))
+	{
+		TargetShapeCount = 0;
+	}
+
 	AddNShapes(1);
 	AddNShapes(10);
 	AddNShapes(50);
@@ -116,8 +158,11 @@ void GeometrizerMainLoop()
 		if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
 		{
 			PB.DeleteShape(i);
+			ShouldRedrawImages = true;
 		}
 	}
+
+	ImGui::End();
 
 	// Do stuff
 	InitialShapeCount.CheckSetting();
@@ -138,9 +183,9 @@ void GeometrizerMainLoop()
 	{
 		PB.AddOneShape();
 		TargetShapeCount--;
+		ShouldRedrawImages = true;
 	}
 
-	ImGui::End();
 }
 
 void SetupGLFWCallbacks(GLFWwindow* W)
