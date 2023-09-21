@@ -57,10 +57,12 @@ CONFIG_SETTING(float, FocusAreaMaxY, 1.0f);
 char* CurrentImagePath = 0;
 int TargetShapeCount = 0;
 
-//Images
+//Images and GUI stuff
 bool ShouldRedrawImages = true;
+int SelectedShape = -1;
 
 Image ShapePreview;
+Image SoloShapePreview;
 std::vector<Image> SingleShapeLayers;
 
 void GeometrizerMainLoop()
@@ -83,6 +85,7 @@ void GeometrizerMainLoop()
 	{
 		int ShapeCount = PB.GetCommittedShapeCount();
 
+		// Draw full drawing and individual shapes
 		SingleShapeLayers.resize(ShapeCount);
 
 		ShapePreview.EmptyCanvas(256,256, 0,0,0,0);
@@ -94,8 +97,16 @@ void GeometrizerMainLoop()
 
 			ShapePreview.DrawSingleShape(PB.GetCommittedShape(i));
 		}
+
+		// Draw selected shape only
+		SoloShapePreview.EmptyCanvas(256,256, 0,0,0,0);
+		if (SelectedShape >= 0 && SelectedShape < PB.GetCommittedShapeCount())
+		{
+			SoloShapePreview.DrawSingleShape(PB.GetCommittedShape(SelectedShape));
+		}
 	}
 
+	// Draw GUI
 	ImGui::Begin("Test");
 
 	ImGui::BeginTable("TABLE", 2);
@@ -103,8 +114,8 @@ void GeometrizerMainLoop()
 
 	ImGui::Image(ImTextureID(PB.GetSourceImageTextureID()), ImVec2(ShapePreview.Width, ShapePreview.Height));
 	ImGui::SameLine();
-	//ImGui::Image(ImTextureID(PB.GetCanvasTextureID()), ImVec2(PB.GetWidth(), PB.GetHeight()));
 	ImGui::Image(ImTextureID(ShapePreview.GPUTexture), ImVec2(ShapePreview.Width, ShapePreview.Height));
+	ImGui::Image(ImTextureID(SoloShapePreview.GPUTexture), ImVec2(SoloShapePreview.Width, SoloShapePreview.Height));
 
 	ImGui::Text("%d", PB.GetCommittedShapeCount());
 
@@ -148,22 +159,42 @@ void GeometrizerMainLoop()
 	}
 
 	ImGui::TableNextColumn();
-
 	ImGui::BeginChild("SoloLayer");
+	ImGui::BeginTable("SoloLayerEntries", 1);
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.f, 1.f, 1.f, 0.1f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.f, 1.f, 1.f, 0.25f));
 
 	//Draw single layers
 	for (int i = SingleShapeLayers.size() - 1; i >= 0; i--)
 	{
-		ImGui::Image(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height));
-		ImGui::SameLine();
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
 
-		if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
+		unsigned int SelectColor = 0x80ffffff;
+		ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, i == SelectedShape ? SelectColor : 0);
+
+		if (ImGui::ImageButton(ImTextureID(SingleShapeLayers[i].GPUTexture), ImVec2(SingleShapeLayers[i].Width, SingleShapeLayers[i].Height),
+		ImVec2(0,0), ImVec2(1,1), -1,
+		ImVec4(0,0,0,0), ImVec4(1,1,1,1)))
+		{
+			SelectedShape = i;
+		}
+
+
+		//ImGui::SameLine();
+
+		/*if (ImGui::Button(std::format("Delete shape #{}", i).c_str()))
 		{
 			PB.DeleteShape(i);
 			ShouldRedrawImages = true;
-		}
+		}*/
 	}
 
+	ImGui::PopStyleColor(3);
+
+	ImGui::EndTable();
 	ImGui::EndChild();
 	ImGui::EndTable();
 
