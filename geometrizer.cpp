@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <format>
@@ -5,6 +6,7 @@
 
 #include "imgui.h"
 #include "lodepng.h"
+#include "json.hpp"
 
 #include "geometrizer.h"
 #include "PaintedBlobs.h"
@@ -217,6 +219,36 @@ void GeometrizerMainLoop()
 	if (ImGui::Button("Export PNG"))
 	{
 		lodepng::encode("output.png", PB.GetPixels(), PB.GetWidth(), PB.GetHeight());
+	}
+
+	if (ImGui::Button("Export to Tw1ddle JSON"))
+	{
+		int FinalScale = 1024;
+
+		nlohmann::json J;
+		J.emplace_back( nlohmann::json({{"type", 0}, {"data", {0,0,FinalScale,FinalScale}}, {"color", {0,0,0,0}}}) );
+
+		for (int i = 0; i < PB.GetCommittedShapeCount(); i++)
+		{
+			ExportShape CurrentShape = PB.GetCommittedShape(i);
+
+			int PosX = CurrentShape.PosX * FinalScale;
+			int PosY = CurrentShape.PosY * FinalScale;
+			int SizeX = CurrentShape.SizeX * FinalScale;
+			int SizeY = CurrentShape.SizeY * FinalScale;
+			int Angle = (CurrentShape.Angle / PI) * 180.0f;
+
+			int ColorR = CurrentShape.ColorR * 255;
+			int ColorG = CurrentShape.ColorG * 255;
+			int ColorB = CurrentShape.ColorB * 255;
+
+			J.emplace_back( nlohmann::json({{"type", 4}, {"data", {PosX,PosY,SizeX,SizeY,Angle}}, {"color", {ColorR,ColorG,ColorB,255}}}) );
+		}
+
+		std::ofstream F;
+		F.open("output.json");
+		F<<J;
+		F.close();
 	}
 
 	ImGui::TableNextColumn();
